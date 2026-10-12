@@ -1,0 +1,35 @@
+services:
+  db:
+    image: mariadb
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_USER: task
+      MARIADB_PASSWORD: task
+      MARIADB_DATABASE: task
+
+    volumes:
+      - 'taskdb:/var/lib/mysql'
+
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+
+
+  app:
+    build:
+      context: .
+      dockerfile: dockerfile
+
+    depends_on:
+      db:
+        condition: service_healthy
+    
+    ports:
+      - '8000:8000'
+
+volumes:
+  taskdb:
